@@ -1,3 +1,9 @@
 spring:
   application:
     name: backend
+  data:
+    redis:
+      # A Redis szerver host neve
+      host: localhost
+      # A Redis szerver portja (alapértelmezett: 6379)
+      port: 6379
