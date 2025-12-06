@@ -78,3 +78,40 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+    deploy-staging:
+      name: Deploy to Staging
+      runs-on: ubuntu-latest
+      needs: push-image
+      environment: staging
+
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+
+        - name: Set Staging Environment URL
+          run: |
+            echo "REDIS_HOST=redis-staging-server" >> $GITHUB_ENV
+            echo "APP_PROFILE=staging" >> $GITHUB_ENV
+
+        - name: Log in to GHCR
+          uses: docker/login-action@v3
+          with:
+            registry: ghcr.io
+            username: ${{ github.repository_owner }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Deploy Staging Image
+          run: |
+            IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
+            echo "--- STARTING DEPLOYMENT TO STAGING ---"
+            echo "Profile used: ${{ env.APP_PROFILE }}"
+            echo "Pulling image: ghcr.io/${{ github.repository }}/backend:$IMAGE_TAG"
+
+            # 1. Image lehúzása a Staging szerveren (szimuláció)
+            # docker pull ghcr.io/${{ github.repository }}/backend:$IMAGE_TAG
+
+            # 2. Konténer indítása a staging konfigurációval
+            # docker run -d --env SPRING_PROFILES_ACTIVE=staging ...
+
+            echo "Deployment to Staging environment completed successfully."
