@@ -1,0 +1,12 @@
+# application-staging.yml
+
+# 1. API PORT
+server:
+  port: 8080
+
+# 2. ADATBÁZIS (Redis)
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
