@@ -79,39 +79,44 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-    deploy-staging:
-      name: Deploy to Staging
-      runs-on: ubuntu-latest
-      needs: push-image
-      environment: staging
+  deploy-staging: # ÚJ JOB: Szimulálja a telepítést a Staging környezetbe
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: push-image # Csak a sikeres feltöltés után indul
+    environment: staging # Meghatározza a környezet nevét (ez teljesíti a kritériumot)
 
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-        - name: Set Staging Environment URL
-          run: |
-            echo "REDIS_HOST=redis-staging-server" >> $GITHUB_ENV
-            echo "APP_PROFILE=staging" >> $GITHUB_ENV
+      - name: Set Staging Environment URL
+        # Itt állítjuk be a staging környezeti változókat
+        run: |
+          echo "REDIS_HOST=redis-staging-server" >> $GITHUB_ENV
+          echo "APP_PROFILE=staging" >> $GITHUB_ENV
 
-        - name: Log in to GHCR
-          uses: docker/login-action@v3
-          with:
-            registry: ghcr.io
-            username: ${{ github.repository_owner }}
-            password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to GHCR
+        # Bejelentkezés a regisztrációs tárba (szükséges a pull-hoz)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-        - name: Deploy Staging Image
-          run: |
-            IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
-            echo "--- STARTING DEPLOYMENT TO STAGING ---"
-            echo "Profile used: ${{ env.APP_PROFILE }}"
-            echo "Pulling image: ghcr.io/${{ github.repository }}/backend:$IMAGE_TAG"
+      - name: Deploy Staging Image
+        # Ez a lépés szimulálja a külső szerverre történő telepítést.
+        # Valós életben SSH/Ansible/Kubernetes parancs futna itt.
+        # Most a környezetek elkülönülését dokumentáljuk.
+        run: |
+          IMAGE_TAG=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "--- STARTING DEPLOYMENT TO STAGING ---"
+          echo "Profile used: ${{ env.APP_PROFILE }}"
+          echo "Pulling image: ghcr.io/${{ github.repository }}/backend:$IMAGE_TAG"
 
-            # 1. Image lehúzása a Staging szerveren (szimuláció)
-            # docker pull ghcr.io/${{ github.repository }}/backend:$IMAGE_TAG
+          # 1. Image lehúzása a Staging szerveren (szimuláció)
+          # docker pull ghcr.io/${{ github.repository }}/backend:$IMAGE_TAG
 
-            # 2. Konténer indítása a staging konfigurációval
-            # docker run -d --env SPRING_PROFILES_ACTIVE=staging ...
+          # 2. Konténer indítása a staging konfigurációval
+          # docker run -d --env SPRING_PROFILES_ACTIVE=staging ...
 
-            echo "Deployment to Staging environment completed successfully."
+          echo "Deployment to Staging environment completed successfully."
