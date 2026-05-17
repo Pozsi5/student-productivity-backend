@@ -10,3 +10,12 @@ spring:
     redis:
       host: redis
       port: 6379
+
+  # 3. BIZTONSÁG (Keycloak)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # A staging környezetben a Docker hálózaton belüli nevet (keycloak)
+          # és a dedikált portot használunk: 9080
+          issuer-uri: http://keycloak:9080/realms/student-productivity-realm

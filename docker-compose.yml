@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: productivity-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: productivity-keycloak
+    ports:
+      - "9080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    volumes:
+      - ./infrastructure/keycloak/realm-export.json:/opt/keycloak/data/import/realm.json:ro
+    # A 'start-dev' paranccsal nem követel azonnal HTTPS-t és dedikált külső adatbázist
+    command: start-dev --import-realm
+    restart: unless-stopped
