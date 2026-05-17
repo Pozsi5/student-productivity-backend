@@ -6,6 +6,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
@@ -14,30 +17,36 @@ class SecurityConfig {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            // REST API lévén kikapcsoljuk a CSRF védelmet (tokeneket használunk helyette)
             .csrf { it.disable() }
 
-            // CORS beállítások engedélyezése (a meglévő WebConfig-od alapján)
+            // lentebb definiált cors itt hívjuk be
             .cors { }
 
-            // Stateless működés, mivel nem tartunk szerver oldali session-t,
-            // minden kérésnek tartalmaznia kell a JWT tokent
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
-
-            // Végpontok védelmének beállítása
             .authorizeHttpRequests { auth ->
-                // Ha később lesznek publikus végpontok, azokat így lehet megnyitni:
-                // auth.requestMatchers("/api/public/**").permitAll()
-
                 auth.anyRequest().authenticated()
             }
-
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { }
             }
 
         return http.build()
+    }
+
+    // Most már a cors konfiguráció itt van
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = listOf("http://localhost:3000")
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        configuration.allowedHeaders = listOf("*")
+        configuration.allowCredentials = true
+
+        val source = UrlBasedCorsConfigurationSource()
+        // Itt figyeld meg: /** van, ami minden végpontra érvényesíti a beállítást
+        source.registerCorsConfiguration("/**", configuration)
+        return source
     }
 }
