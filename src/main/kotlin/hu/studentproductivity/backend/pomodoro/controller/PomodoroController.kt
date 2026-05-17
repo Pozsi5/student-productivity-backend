@@ -3,10 +3,11 @@ package hu.studentproductivity.backend.pomodoro.controller
 import hu.studentproductivity.backend.pomodoro.model.PomodoroSettingsDTO
 import hu.studentproductivity.backend.pomodoro.service.PomodoroService
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -21,33 +22,27 @@ class PomodoroController(
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
     fun saveSettings(
-        // Az anonim azonosítót egy HTTP header-ből (fejlécből) olvassuk ki
-        @RequestHeader("X-Client-ID") clientId: String?,
+        // Az X-Client-ID helyett elkérjük a hitelesített JWT tokent a Spring Security-től
+        @AuthenticationPrincipal jwt: Jwt,
         @RequestBody settings: PomodoroSettingsDTO
     ) {
-        // Ellenőrizzük, hogy a clientId megérkezett-e
-        if (clientId.isNullOrBlank()) {
-            throw IllegalArgumentException("Az X-Client-ID fejléc hiányzik vagy érvénytelen.")
-            // Később 400 Bad Request hibát dobni
-        }
+        // A jwt.subject tartalmazza a Keycloak (és ezáltal a Google) által generált,
+        // teljesen egyedi és állandó felhasználói azonosítót (UUID-t szövegként).
+        val userId = jwt.subject
 
-        pomodoroService.saveSettings(clientId, settings)
+        // Meghívjuk a service-t az egyedi felhasználói ID-val
+        pomodoroService.saveSettings(userId, settings)
     }
 
     // GET /api/pomodoro/settings
     // A beállítások betöltése
     @GetMapping
     fun loadSettings(
-        @RequestHeader("X-Client-ID") clientId: String?
+        @AuthenticationPrincipal jwt: Jwt
     ): PomodoroSettingsDTO {
 
-        if (clientId.isNullOrBlank()) {
-            // Ha hiányzik az ID, visszaadunk egy alapértelmezett beállítást,
-            // de a logikának jelezzük, hogy ez nem volt menthető, vagy hibát dobunk.
-            // Ebben a példában az alapértelmezettet adjuk, de élesben 400-at javaslok.
-            throw IllegalArgumentException("Az X-Client-ID fejléc hiányzik vagy érvénytelen.")
-        }
+        val userId = jwt.subject
 
-        return pomodoroService.loadSettings(clientId)
+        return pomodoroService.loadSettings(userId)
     }
 }

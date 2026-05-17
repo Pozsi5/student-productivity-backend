@@ -18,10 +18,10 @@ class PomodoroService(
     private val TTL_DAYS = 30L
 
     /**
-     * Elmenti a Pomodoro beállításokat a megadott kliensazonosító (Client ID) alá.
+     * Elmenti a Pomodoro beállításokat a megadott kliensazonosító (User ID) alá.
      */
-    fun saveSettings(clientId: String, settings: PomodoroSettingsDTO) {
-        val key = KEY_PREFIX + clientId
+    fun saveSettings(userId: String, settings: PomodoroSettingsDTO) {
+        val key = KEY_PREFIX + userId
 
         // Mentés a Redisbe, és beállítás a lejárati idő (TTL)
         redisTemplate.opsForValue().set(key, settings, TTL_DAYS, TimeUnit.DAYS)
@@ -31,8 +31,8 @@ class PomodoroService(
      * Betölti a Pomodoro beállításokat a megadott kliensazonosító alá.
      * Ha nincs mentett beállítás, az alapértelmezett DTO-t adja vissza.
      */
-    fun loadSettings(clientId: String): PomodoroSettingsDTO {
-        val key = KEY_PREFIX + clientId
+    fun loadSettings(userId: String): PomodoroSettingsDTO {
+        val key = KEY_PREFIX + userId
 
         // Megpróbáljuk betölteni az adatot a Redis-ből
         val settings = redisTemplate.opsForValue().get(key)
