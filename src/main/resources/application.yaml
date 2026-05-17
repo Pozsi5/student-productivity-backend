@@ -7,3 +7,9 @@ spring:
       host: localhost
       # A Redis szerver portja (alapértelmezett: 6379)
       port: 6379
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak szerver címe és a Realm neve
+          issuer-uri: http://localhost:9080/realms/student-productivity-realm
